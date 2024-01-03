@@ -1,0 +1,67 @@
+Iredmail 防垃圾邮件设置
+SPF根记录解析（一般为@ 或者 留空）
+v=spf1 mx ~all
+DKIM解析防垃圾邮件
+查看
+amavisd -c /etc/amavisd/amavisd.conf showkeys
+
+
+iredmail 证书申请。
+
+修改域名与生成文件名
+curl https://get.acme.sh | sh
+~/.acme.sh/acme.sh --register-account -m xxxx@xxxx.com
+~/.acme.sh/acme.sh --issue -d mail.quilicore.com --webroot /var/www/html
+~/.acme.sh/acme.sh --installcert -d mail.quilicore.com --key-file /etc/pki/tls/private/quilicore.key --fullchain-file /etc/pki/tls/certs/quilicore.crt
+
+
+配置 ngigx  SSL主机
+vi /etc/nginx/sites-enabled/00-default-ssl.conf
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name mail.airecoler.com;   #指定域名
+
+    root /var/www/html;
+    index index.php index.html;
+
+    include /etc/nginx/templates/misc.tmpl;
+    include /etc/nginx/templates/airecoler.tmpl;    #指定ssl 配置文件
+    include /etc/nginx/templates/iredadmin.tmpl;
+    include /etc/nginx/templates/roundcube.tmpl;
+    include /etc/nginx/templates/sogo.tmpl;
+    include /etc/nginx/templates/netdata.tmpl;
+    include /etc/nginx/templates/php-catchall.tmpl;
+    include /etc/nginx/templates/stub_status.tmpl;
+}
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name mail.quilicore.com;   #配置域名
+
+    root /var/www/html;
+    index index.php index.html;
+
+    include /etc/nginx/templates/misc.tmpl;
+    include /etc/nginx/templates/quilicore.tmpl;    #配置ssl文件
+    include /etc/nginx/templates/iredadmin.tmpl;
+    include /etc/nginx/templates/roundcube.tmpl;
+    include /etc/nginx/templates/sogo.tmpl;
+    include /etc/nginx/templates/netdata.tmpl;
+    include /etc/nginx/templates/php-catchall.tmpl;
+    include /etc/nginx/templates/stub_status.tmpl;
+}
+
+复制一份对应域名的ssl的配置文件
+cp /etc/nginx/templates/ssl.tmpl  /etc/nginx/templates/moiswell.tmpl
+
+修改ssl 配置文件,指定证书文件路径
+vi /etc/nginx/templates/moiswell.tmpl
+ssl_certificate /etc/pki/tls/certs/moiswell.crt;
+ssl_certificate_key /etc/pki/tls/private/moiswell.key;
+
+
+systemctl reload nginx
+
+

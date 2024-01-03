@@ -1,0 +1,17 @@
+yum update -y
+yum install -y curl socat
+
+#一键安装x-ui 官方原版
+bash <(curl -Ls https://raw.githubusercontent.com/vaxilu/x-ui/master/install.sh)
+
+#配置证书
+#安装 Acme 脚本
+curl https://get.acme.sh | sh
+
+#更换域名安装时需要关闭防火墙
+systemctl stop firewalld
+~/.acme.sh/acme.sh --register-account -m xxxx@xxxx.com
+~/.acme.sh/acme.sh  --issue -d inofiavps3.duckdns.org --standalone
+
+#安装证书到指定文件夹
+~/.acme.sh/acme.sh --installcert -d inofiavps3.duckdns.org --key-file /root/private.key --fullchain-file /root/cert.crt
